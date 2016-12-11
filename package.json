@@ -1,0 +1,28 @@
+{
+  "name": "sketch-module-json-sync",
+  "version": "0.1.0",
+  "description": "",
+  "main": "build/index.js",
+  "scripts": {
+    "prebublish": "make build",
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mathieudutour/sketch-module-json-sync.git"
+  },
+  "author": "Mathieu Dutour <mathieu@dutour.me> (http://mathieu.dutour.me/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mathieudutour/sketch-module-json-sync/issues"
+  },
+  "homepage": "https://github.com/mathieudutour/sketch-module-json-sync#readme",
+  "devDependencies": {
+    "@mathieudutour/js-fatigue": "^1.0.7",
+    "eslint-config-sketch": "0.1.2"
+  },
+  "dependencies": {
+    "sketch-module-fs": "^0.1.1",
+    "to-camel-case": "1.0.0"
+  }
+}
