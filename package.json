@@ -1,10 +1,10 @@
 {
   "name": "sketch-module-json-sync",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A sketch module to export and import a sketch file to json",
   "main": "build/index.js",
   "scripts": {
-    "prebublish": "make build",
+    "prepublish": "make build",
     "test": "make test"
   },
   "repository": {
