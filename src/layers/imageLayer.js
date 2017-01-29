@@ -1,30 +1,15 @@
 import { findImage, imageName, imageId, isNull } from '../util'
-import { exportShadow, exportBlur } from './layerMixin'
-import { parseStyle, setShadow, setBlur } from '../importUtils'
+import { exportStyle, importStyle } from '../sharedStyle'
 import GeneralLayer from './general'
 
 export default class ImageLayer extends GeneralLayer {
-  constructor (...args) {
-    super(...args)
-
-    this.shadow = exportShadow.bind(this)
-    this.blur = exportBlur.bind(this)
-  }
-
   styles () {
+    const image = findImage(this.savedImages, this._layer.image())
     return {
       ...super.styles(),
-      ...this.cssAttributes(),
-      ...this.blur(),
-      ...this.shadow()
+      image: image.sha1,
+      ...exportStyle(this._layer.styleGeneric(), this.savedImages)
     }
-  }
-
-  cssBackgrounds () {
-    var re = {}
-    var image = findImage(this.savedImages, this._layer.image())
-    re.image = imageName(image)
-    return re
   }
 
   images () {
@@ -42,41 +27,13 @@ export default class ImageLayer extends GeneralLayer {
       return
     }
 
-    var s = parseStyle(json.styles)
-    var imagePath = current.path + '/' + s.backgroundImage[0].image
+    var imagePath = current.path + '/' + imageName({sha1: json.styles.image})
     var image = NSImage.alloc().initWithContentsOfFile(imagePath)
     var imageData = MSImageData.alloc().initWithImage_convertColorSpace(image, false)
-    var bitmap = MSBitmapLayer.alloc().initWithFrame_image(s.rect, imageData)
-    bitmap.objectID = json.objectId
-    bitmap.setName(json.name)
+    var bitmap = MSBitmapLayer.alloc().initWithFrame_image(GeneralLayer.importBound(json), imageData)
+    GeneralLayer.importLayerProps(bitmap, json)
 
-    if (s.rotation) {
-      bitmap.rotation = s.rotation
-    }
-
-    if (s.blur) {
-      setBlur(bitmap, s.blur)
-    }
-
-    if (s.shadow) {
-      setShadow(bitmap, s.shadow)
-    }
-
-    if (s.hidden) {
-      bitmap.isVisible = false
-    }
-
-    if (s.opacity) {
-      bitmap.style().contextSettings().opacity = s.opacity
-    }
-
-    if (s.blendMode) {
-      bitmap.style().contextSettings().blendMode = s.blendMode
-    }
-
-    if (s.locked) {
-      bitmap.isLocked = true
-    }
+    importStyle(bitmap, json.styles)
 
     parent.object.addLayer(bitmap)
   }

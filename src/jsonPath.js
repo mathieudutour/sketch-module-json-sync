@@ -1,13 +1,14 @@
 import fs from 'sketch-module-fs'
 
 export function jsonFilePaths (path) {
-  var filename
   var ds = NSFileManager.defaultManager().enumeratorAtPath(path)
+  let filename = ds.nextObject()
   var paths = []
-  while (filename = ds.nextObject()) {
+  while (filename) {
     if (filename.pathExtension() == 'json') {
       paths.push(filename)
     }
+    filename = ds.nextObject()
   }
   return paths
 }

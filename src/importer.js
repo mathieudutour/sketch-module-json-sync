@@ -1,6 +1,7 @@
 import { jsonFilePaths, jsonTree } from './jsonPath'
 import { Layer } from './layer'
 import { getCurrentDirectory, getCurrentFileName } from './util'
+import { importSharedTextStyle } from './sharedTextStyle'
 
 export default function importer (context, options = {}) {
   const doc = context.document
@@ -11,12 +12,28 @@ export default function importer (context, options = {}) {
 
   const lastPageToRemove = doc.pages()[0]
 
-  const path = getCurrentDirectory(context) + '/' + (options.exportFolder || getCurrentFileName(context))
+  // import shared text styles
+  doc.documentData().layerTextStyles().removeAllSharedObjects()
+  const sharedTextStylesPath = getCurrentDirectory(context) + '/' + (options.exportSharedFolder || 'shared') + '/text-styles'
+  iterateOverJSONs(doc, sharedTextStylesPath, function (json, parent, current) {
+    importSharedTextStyle(doc, json, parent, current)
+  })
+  doc.reloadInspector()
 
+  // import pages
+  const pagesPath = getCurrentDirectory(context) + '/' + (options.exportFolder || getCurrentFileName(context))
+  iterateOverJSONs(doc, pagesPath, function (json, parent, current) {
+    Layer(json.type) && Layer(json.type).importJSON(doc, json, parent, current)
+  })
+
+  doc.removePage(lastPageToRemove)
+}
+
+function iterateOverJSONs (doc, path, func) {
   var jsons = jsonFilePaths(path)
   var tree = jsonTree(jsons, path)
 
-  jsons.sort(compareJsonFilePath.bind(null, tree))
+  jsons.sort(compareJsonFilePath(tree))
 
   for (var i = 0; i < jsons.length; i++) {
     var parent = parentPos(jsons[i], tree)
@@ -24,10 +41,8 @@ export default function importer (context, options = {}) {
     var json = current.json
     current.path = path + '/' + currentPath(jsons[i])
 
-    Layer(json.type) && Layer(json.type).importJSON(doc, json, parent, current)
+    func(json, parent, current)
   }
-
-  doc.removePage(lastPageToRemove)
 }
 
 function parentPos (path, tree) {
@@ -61,15 +76,17 @@ function currentPos (path, tree) {
   return p
 }
 
-function compareJsonFilePath (tree, a, b) {
-  var as = a.pathComponents()
-  var bs = b.pathComponents()
-  var aLen = as.length
-  var bLen = bs.length
+function compareJsonFilePath (tree) {
+  return function (a, b) {
+    var as = a.pathComponents()
+    var bs = b.pathComponents()
+    var aLen = as.length
+    var bLen = bs.length
 
-  if (aLen == bLen && as.slice(0, -2).join('/') == bs.slice(0, -2).join('/')) {
-    return currentPos(b, tree).json.index - currentPos(a, tree).json.index
-  } else {
-    return aLen - bLen
+    if (aLen == bLen && as.slice(0, -2).join('/') == bs.slice(0, -2).join('/')) {
+      return currentPos(b, tree).json.index - currentPos(a, tree).json.index
+    } else {
+      return aLen - bLen
+    }
   }
 }

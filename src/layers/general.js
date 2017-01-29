@@ -1,6 +1,13 @@
-import toCamelCase from 'to-camel-case'
-import { blendModeNumberToString, colorToString } from '../util'
 import { getType } from './types'
+
+function getBound (json) {
+  return CGRectMake(
+    parseFloat(json.styles.bounds.origin.x),
+    parseFloat(json.styles.bounds.origin.y),
+    parseFloat(json.styles.bounds.size.width),
+    parseFloat(json.styles.bounds.size.height)
+  )
+}
 
 export default class GeneralLayer {
   constructor (layer) {
@@ -13,10 +20,6 @@ export default class GeneralLayer {
 
   shortId () {
     return ('' + this._layer.objectID().sha1()).substr(0, 5)
-  }
-
-  symbolId () {
-    return null
   }
 
   dirName () {
@@ -69,6 +72,38 @@ export default class GeneralLayer {
   styles () {
     var re = {}
 
+    if (this._layer.isFlippedHorizontal()) {
+      re.flippedHorizontal = true
+    }
+
+    if (this._layer.isFlippedVertical()) {
+      re.flippedVertical = true
+    }
+
+    if (this._layer.rotation()) {
+      re.rotation = this._layer.rotation()
+    }
+
+    if (this._layer.resizingType()) {
+      re.resizingType = this._layer.resizingType()
+    }
+
+    if (this.bounds()) {
+      re.bounds = this.bounds()
+    }
+
+    return re
+  }
+
+  exportJSON () {
+    const re = {
+      objectId: this.id(),
+      type: this.type(),
+      className: this.className(),
+      name: this.name(),
+      styles: this.styles()
+    }
+
     if (!this._layer.isVisible()) {
       re.hidden = true
     }
@@ -77,88 +112,48 @@ export default class GeneralLayer {
       re.locked = true
     }
 
-    re.bounds = this.bounds()
-
-    return {
-      ...re,
-      ...this.rotation(),
-      ...this.blendMode()
-    }
-  }
-
-  rotation () {
-    var re = {}
-    var rotation = this._layer.rotation()
-    if (rotation) {
-      re.rotation = rotation
-    }
-    return re
-  }
-
-  cssAttributes () {
-    var re = {}
-    var styles = this._layer.CSSAttributes()
-
-    for (var i = 0; i < styles.length; i++) {
-      var s = '' + styles[i]
-      if (s.indexOf('/*') === 0 || // eslint-disable-line
-          (new RegExp('^background:')).test(s) ||
-          (new RegExp('^border:')).test(s) ||
-          (new RegExp('^letter-spacing:')).test(s) ||
-          (new RegExp('^box-shadow:')).test(s) ||
-          (new RegExp('linear-gradient')).test(s)) {
-        continue
-      }
-      const parseRegex = new RegExp('^(.*): (.*);$')
-      const parsed = parseRegex.exec(s)
-      re[toCamelCase(parsed[1])] = parsed[2].replace('px', '')
+    if (this._layer.shouldBreakMaskChain()) {
+      re.breakMaskChain = true
     }
 
-    return {
-      ...re,
-      ...this.cssBackgrounds(),
-      ...this.cssBorders()
-    }
-  }
-
-  cssBackgrounds () {
-    return {}
-  }
-
-  cssBorders () {
-    var re = {}
-
-    if (!this._layer.styleGeneric().hasEnabledBorder()) {
-      return re
-    }
-
-    var borders = this._layer.style().borders()
-    re.borders = []
-    for (var i = 0; i < borders.length; i++) {
-      const border = {
-        color: colorToString(borders[i].color()),
-        thickness: borders[i].thickness()
-      }
-      if (!borders[i].isEnabled()) {
-        border.enabled = false
-      }
-      re.borders.push(border)
+    if (this._layer.hasClickThrough && this._layer.hasClickThrough()) {
+      re.clickThrough = true
     }
 
     return re
   }
 
-  blendMode () {
-    var re = {}
+  static importBound (json) {
+    return getBound(json)
+  }
 
-    if (this._layer.style) {
-      var mode = this._layer.style().contextSettings().blendMode()
-      if (mode > 0) {
-        re.blendMode = blendModeNumberToString(mode)
-      }
+  static importLayerProps (layer, json) {
+    layer.objectID = json.objectId
+    layer.setName(json.name)
+    if (json.hidden) {
+      layer.isVisible = false
     }
-
-    return re
+    if (json.locked) {
+      layer.isLocked = true
+    }
+    if (json.styles.flippedHorizontal) {
+      layer.isFlippedHorizontal = true
+    }
+    if (json.styles.flippedVertical) {
+      layer.isFlippedVertical = true
+    }
+    if (json.breakMaskChain) {
+      layer.shouldBreakMaskChain = true
+    }
+    if (json.styles.rotation) {
+      layer.rotation = json.styles.rotation
+    }
+    if (json.clickThrough) {
+      layer.hasClickThrough = true
+    }
+    if (json.styles.bounds) {
+      return MSRect.rectWithRect(getBound(json))
+    }
   }
 
   images () {
@@ -167,9 +162,5 @@ export default class GeneralLayer {
 
   setSavedImages (images) {
     this.savedImages = images
-  }
-
-  path () {
-    return ''
   }
 }

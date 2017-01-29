@@ -1,10 +1,12 @@
-import { colorToString } from '../util'
-import { parseStyle } from '../importUtils'
+import { importColor, exportColor } from '../NS/color'
 import GeneralLayer from './general'
 
 export default class SymbolMasterLayer extends GeneralLayer {
-  symbolId () {
-    return ('' + this._layer.symbolID())
+  exportJSON () {
+    return {
+      ...super.exportJSON(),
+      symbolId: '' + this._layer.symbolID()
+    }
   }
 
   styles () {
@@ -18,23 +20,21 @@ export default class SymbolMasterLayer extends GeneralLayer {
     var re = {}
 
     if (this._layer.hasBackgroundColor()) {
-      var bgColor = this._layer.backgroundColor()
       re.hasBackgroundColor = true
-      re.backgroundColor = colorToString(bgColor)
+      re.backgroundColor = exportColor(this._layer.backgroundColor())
     }
 
     return re
   }
 
   static importJSON (doc, json, parent, current) {
-    var s = parseStyle(json.styles)
-    var symbol = MSSymbolMaster.alloc().initWithFrame(s.rect)
+    var symbol = MSSymbolMaster.alloc().initWithFrame(GeneralLayer.importBound(json))
     symbol.objectID = json.objectId
     symbol.setName(json.name)
     symbol.symbolID = json.symbolId
-    if (s.hasBackgroundColor) {
+    if (json.styles.hasBackgroundColor) {
       symbol.hasBackgroundColor = true
-      symbol.backgroundColor = s.backgroundColor
+      symbol.backgroundColor = importColor(json.styles.backgroundColor)
     }
     if (parent) {
       parent.object.addLayer(symbol)

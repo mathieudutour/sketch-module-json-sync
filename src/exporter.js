@@ -1,30 +1,32 @@
 import fs from 'sketch-module-fs'
 import { getLayers } from './layer'
 import { imageName, shasum, getCurrentDirectory, getCurrentFileName } from './util'
+import { exportSharedTextStyle } from './sharedTextStyle'
 
 export default function (context, options = {}) {
   const doc = context.document
-  const pages = getLayers(doc.pages())
-  const path = getCurrentDirectory(context) + '/' + (options.exportFolder || getCurrentFileName(context))
+  const pagesPath = getCurrentDirectory(context) + '/' + (options.exportFolder || getCurrentFileName(context))
+  const sharedTextStylesPath = getCurrentDirectory(context) + '/' + (options.exportSharedFolder || 'shared') + '/text-styles'
 
-  fs.rmdir(path)
+  fs.rmdir(pagesPath)
+  fs.rmdir(sharedTextStylesPath)
+
+  // export shared text styles
+  fs.mkdir(sharedTextStylesPath)
+  const sharedTextStyles = doc.documentData().layerTextStyles().objects()
+  for (let i = 0; i < sharedTextStyles.length; i++) {
+    exportSharedTextStyle(sharedTextStylesPath, sharedTextStyles[i], sharedTextStyles.length - i)
+  }
 
   // export pages
-  for (var i = 0; i < pages.length; i++) {
-    exportLayer(path, pages[i], pages.length - i, {})
+  const pages = getLayers(doc.pages())
+  for (let i = 0; i < pages.length; i++) {
+    exportLayer(pagesPath, pages[i], pages.length - i, {})
   }
 }
 
 function exportLayer (parentPath, layer, index, parent) {
-  if (parent.type === 'shapePath' && layer.path() === '') {
-    return
-  }
-
-  if (parent.type === 'oval' && layer.path() === '') {
-    return
-  }
-
-  if (parent.type === 'rectangle' && layer.path() === '') {
+  if (['shapePath', 'oval', 'rectangle'].indexOf(parent.type) != -1 && (!layer.path || layer.path() === '')) {
     return
   }
 
@@ -33,22 +35,8 @@ function exportLayer (parentPath, layer, index, parent) {
 
   saveImages(layer, path)
 
-  const json = {
-    objectId: layer.id(),
-    type: layer.type(),
-    className: layer.className(),
-    name: layer.name(),
-    index,
-    styles: layer.styles()
-  }
-
-  const shapePath = layer.path()
-  if (shapePath !== '') {
-    json.path = shapePath
-  }
-  if (layer.symbolId()) {
-    json.symbolId = layer.symbolId()
-  }
+  const json = layer.exportJSON()
+  json.index = index
 
   fs.writeFile(path + '/' + json.type + '.json', JSON.stringify(json, null, '  '))
 

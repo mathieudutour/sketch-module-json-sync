@@ -1,5 +1,4 @@
-import { colorToString } from '../util'
-import { parseStyle } from '../importUtils'
+import { importColor, exportColor } from '../NS/color'
 import GeneralLayer from './general'
 
 export default class ArtboardLayer extends GeneralLayer {
@@ -14,9 +13,8 @@ export default class ArtboardLayer extends GeneralLayer {
     var re = {}
 
     if (this._layer.hasBackgroundColor()) {
-      var bgColor = this._layer.backgroundColor()
       re.hasBackgroundColor = true
-      re.backgroundColor = colorToString(bgColor)
+      re.backgroundColor = exportColor(this._layer.backgroundColor())
     }
 
     return re
@@ -26,11 +24,10 @@ export default class ArtboardLayer extends GeneralLayer {
     var artboard = MSArtboardGroup.alloc().init()
     artboard.objectID = json.objectId
     artboard.setName(json.name)
-    var s = parseStyle(json.styles)
-    artboard.setRect(s.rect)
-    if (s.hasBackgroundColor) {
-      artboard.hasBackgroundColor = s.hasBackgroundColor
-      artboard.backgroundColor = s.backgroundColor
+    artboard.setRect(GeneralLayer.importBound(json))
+    if (json.styles.hasBackgroundColor) {
+      artboard.hasBackgroundColor = true
+      artboard.backgroundColor = importColor(json.styles.backgroundColor)
     }
     parent.object.addLayer(artboard)
     current.object = artboard
