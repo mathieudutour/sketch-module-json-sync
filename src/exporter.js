@@ -12,8 +12,10 @@ export default function (context, options = {}) {
   fs.rmdir(sharedTextStylesPath)
 
   // export shared text styles
-  fs.mkdir(sharedTextStylesPath)
   const sharedTextStyles = doc.documentData().layerTextStyles().objects()
+  if (sharedTextStyles.length) {
+    fs.mkdir(sharedTextStylesPath)
+  }
   for (let i = 0; i < sharedTextStyles.length; i++) {
     exportSharedTextStyle(sharedTextStylesPath, sharedTextStyles[i], sharedTextStyles.length - i)
   }

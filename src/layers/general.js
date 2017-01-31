@@ -1,3 +1,4 @@
+import { round } from '../util'
 import { getType } from './types'
 
 function getBound (json) {
@@ -59,12 +60,12 @@ export default class GeneralLayer {
     var b = this._layer.frame()
     return {
       origin: {
-        x: parseFloat(b.x()).toFixed(3),
-        y: parseFloat(b.y()).toFixed(3)
+        x: round(b.x()),
+        y: round(b.y())
       },
       size: {
-        width: parseFloat(b.width()).toFixed(3),
-        height: parseFloat(b.height()).toFixed(3)
+        width: round(b.width()),
+        height: round(b.height())
       }
     }
   }

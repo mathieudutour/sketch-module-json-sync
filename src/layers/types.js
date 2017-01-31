@@ -33,7 +33,7 @@ export function getType (layer) {
       if (layer.layers) {
         layers = toArray(layer.layers())
       }
-      if (layers.length === 1) {
+      if (layers.length === 1 && getType(layers[0]) !== PATH) {
         return getType(layers[0])
       } else {
         return COMBINED_SHAPE

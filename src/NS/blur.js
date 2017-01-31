@@ -1,4 +1,6 @@
-var blurMap = {
+import { round } from '../util'
+
+const blurMap = {
   0: 'gaussian',
   1: 'motion',
   2: 'zoom',
@@ -26,15 +28,15 @@ function blurToNumber (str) {
 export function exportBlur (blur) {
   let s = {
     type: blurNumberToString(blur.type()),
-    radius: parseFloat(blur.radius()).toFixed(3)
+    radius: round(blur.radius())
   }
 
   if (blur.type() == 1) { // motion
-    s.angle = parseFloat(blur.motionAngle()).toFixed(3)
+    s.angle = round(blur.motionAngle())
   } else if (blur.type() == 2) { // background
     s.center = {
-      x: parseFloat(blur.center().x).toFixed(3),
-      y: parseFloat(blur.center().y).toFixed(3)
+      x: round(blur.center().x),
+      y: round(blur.center().y)
     }
   }
   return s

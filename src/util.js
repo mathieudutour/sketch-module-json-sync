@@ -33,6 +33,10 @@ function system (path, args) {
   return NSString.alloc().initWithData_encoding(data, NSUTF8StringEncoding)
 }
 
+export function round (number, significant = 3) {
+  return +parseFloat(number).toFixed(significant)
+}
+
 export function shasum (path) {
   const out = '' + system('/usr/bin/shasum', [path])
   return out.substr(0, 40)

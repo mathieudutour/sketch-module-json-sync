@@ -1,4 +1,4 @@
-import { findImage, toArray, imageName } from '../util'
+import { findImage, toArray, imageName, round } from '../util'
 import { exportColor, importColor } from './color'
 import { exportBlendMode, importBlendMode } from './blendMode'
 
@@ -59,12 +59,12 @@ function getGradientObject (gradient) {
     gradientType: gradientNumberToString(gradient.gradientType()),
     elipseLength: gradient.elipseLength(),
     from: {
-      x: parseFloat(from.x).toFixed(3),
-      y: parseFloat(from.y).toFixed(3)
+      x: round(from.x),
+      y: round(from.y)
     },
     to: {
-      x: parseFloat(to.x).toFixed(3),
-      y: parseFloat(to.y).toFixed(3)
+      x: round(to.x),
+      y: round(to.y)
     },
     stops: toArray(gradient.stops()).map((s) => {
       return {

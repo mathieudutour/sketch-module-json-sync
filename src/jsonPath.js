@@ -1,32 +1,32 @@
 import fs from 'sketch-module-fs'
 
 export function jsonFilePaths (path) {
-  var ds = NSFileManager.defaultManager().enumeratorAtPath(path)
-  let filename = ds.nextObject()
-  var paths = []
+  const ds = NSFileManager.defaultManager().enumeratorAtPath(path)
+  let filename = ds && ds.nextObject && ds.nextObject()
+  const paths = []
   while (filename) {
     if (filename.pathExtension() == 'json') {
       paths.push(filename)
     }
-    filename = ds.nextObject()
+    filename = ds.nextObject && ds.nextObject()
   }
   return paths
 }
 
 export function jsonTree (jsonPaths, path) {
-  var tree = {}
+  const tree = {}
   for (var i = 0; i < jsonPaths.length; i++) {
-    var dirs = jsonPaths[i].pathComponents()
-    var p = tree
+    const dirs = jsonPaths[i].pathComponents()
+    let p = tree
     for (var j = 0; j < dirs.length; j++) {
-      var n = dirs[j]
+      let n = dirs[j]
       if (n.pathExtension() == 'json') {
         n = 'jsonFileName'
         p[n] = dirs[j]
 
-        var filePath = path + '/' + jsonPaths[i]
-        var jsonString = fs.readFile(filePath)
-        var json = JSON.parse(jsonString)
+        const filePath = path + '/' + jsonPaths[i]
+        const jsonString = fs.readFile(filePath)
+        const json = JSON.parse(jsonString)
         p['json'] = json
       } else {
         p[n] = p[n] || {}

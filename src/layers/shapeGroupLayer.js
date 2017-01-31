@@ -86,13 +86,13 @@ export default class ShapeGroupLayer extends GeneralLayer {
       }
 
       group = MSShapeGroup.shapeWithPath(shape)
+      importStyle(group, json.styles)
+      GeneralLayer.importLayerProps(group, json)
     } else {
       group = MSShapeGroup.alloc().init()
-      group.frame = MSRect.rectWithRect(GeneralLayer.importBound(json))
+      importStyle(group, json.styles)
+      group.frame = GeneralLayer.importLayerProps(group, json)
     }
-
-    GeneralLayer.importLayerProps(group, json)
-    importStyle(group, json.styles)
 
     if (json.styles.mask) {
       group.prepareAsMask()

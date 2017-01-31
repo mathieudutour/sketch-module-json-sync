@@ -1,13 +1,13 @@
-import { toArray } from '../util'
+import { toArray, round } from '../util'
 import { exportColor, importColor } from './color'
 
 export function exportShadows (shadows, inner) {
   return toArray(shadows).map(shadow => {
     return {
-      offsetX: parseFloat(shadow.offsetX()).toFixed(3),
-      offsetY: parseFloat(shadow.offsetY()).toFixed(3),
-      radius: parseFloat(shadow.blurRadius()).toFixed(3),
-      spread: parseFloat(shadow.spread()).toFixed(3),
+      offsetX: round(shadow.offsetX()),
+      offsetY: round(shadow.offsetY()),
+      radius: round(shadow.blurRadius()),
+      spread: round(shadow.spread()),
       color: exportColor(shadow.color()),
       ...!shadow.isEnabled() && {enabled: false},
       ...inner && {inner: true}

@@ -1,5 +1,7 @@
+import { round } from '../util'
+
 export function exportKern (nskern) {
-  return parseFloat(nskern).toFixed(3)
+  return round(nskern)
 }
 
 export function importKern (string) {
